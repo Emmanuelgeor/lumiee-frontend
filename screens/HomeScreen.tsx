@@ -197,6 +197,7 @@ export default function HomeScreen({ navigation, route }: any) {
                             <Pressable style={styles.menuItem}>
                                 <Text style={styles.menuItemText}>Parent Area</Text>
                             </Pressable>
+
                             <Pressable
                                 style={styles.menuItem}
                                 onPress={() => navigation.replace("ChildSelect")}
@@ -258,7 +259,12 @@ export default function HomeScreen({ navigation, route }: any) {
 
                             <Pressable
                                 style={styles.actionCard}
-                                onPress={() => navigation.navigate("Videos")}
+                                onPress={() =>
+                                    navigation.navigate("Chat", {
+                                        mode: "video",
+                                        childName,
+                                    })
+                                }
                             >
                                 <Text style={styles.actionEmoji}>🎬</Text>
                                 <Text style={styles.actionText}>Watch Videos</Text>
@@ -266,7 +272,12 @@ export default function HomeScreen({ navigation, route }: any) {
 
                             <Pressable
                                 style={styles.actionCard}
-                                onPress={() => navigation.navigate("Books")}
+                                onPress={() =>
+                                    navigation.navigate("Chat", {
+                                        mode: "book",
+                                        childName,
+                                    })
+                                }
                             >
                                 <Text style={styles.actionEmoji}>📚</Text>
                                 <Text style={styles.actionText}>Find a Book</Text>
@@ -274,7 +285,11 @@ export default function HomeScreen({ navigation, route }: any) {
 
                             <Pressable
                                 style={styles.actionCard}
-                                onPress={() => navigation.navigate("ContinueLearning")}
+                                onPress={() =>
+                                    navigation.navigate("ContinueLearning", {
+                                        childName,
+                                    })
+                                }
                             >
                                 <Text style={styles.actionEmoji}>🧠</Text>
                                 <Text style={styles.actionText}>Continue Where You Left Off</Text>
@@ -294,7 +309,13 @@ export default function HomeScreen({ navigation, route }: any) {
                     />
                     <Pressable
                         style={styles.sendBtn}
-                        onPress={() => navigation.navigate("Chat", { message })}
+                        onPress={() =>
+                            navigation.navigate("Chat", {
+                                mode: "chat",
+                                childName,
+                                initialMessage: message,
+                            })
+                        }
                     >
                         <Text style={styles.sendText}>Send</Text>
                     </Pressable>
