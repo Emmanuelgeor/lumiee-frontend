@@ -17,8 +17,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
 const { width } = Dimensions.get("window");
+const childId = route?.params?.childId;
 
 type ChatCard = {
     id: string;
@@ -132,7 +135,8 @@ export default function ChatScreen({ navigation, route }: any) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    message: userText
+                    message: userText,
+                    mode: mode
                 })
             });
 
@@ -140,11 +144,12 @@ export default function ChatScreen({ navigation, route }: any) {
 
             const cards: ChatCard[] = data.recommendations?.map((item: any) => ({
                 id: item.id,
-                type: item.type,
+                type: item.type || "video",
                 title: item.title,
                 subtitle: item.description?.slice(0, 40),
                 image: item.thumbnail,
-                url: item.url,
+                url: item.downloadURL || item.url || item.videoUrl || "",
+
                 actionLabel: item.type === "video" ? "Watch" : "Read"
             })) || [];
 
@@ -170,12 +175,58 @@ export default function ChatScreen({ navigation, route }: any) {
         }
 
     };
-
     const handleCardPress = (card: ChatCard) => {
-        if (card.url) {
-            Linking.openURL(card.url);
+
+        if (!card.url) {
+            console.log("❌ Missing URL:", card);
+            Alert.alert("Content not available");
+            return;
+        }
+
+        if (card.type === "video") {
+            navigation.navigate("VideoPlayer", {
+                url: card.url,
+                title: card.title
+            });
         } else {
-            Alert.alert(card.title);
+            navigation.navigate("BookViewer", {
+                url: card.url,
+                title: card.title
+            });
+        }
+    };
+    const addToFavorites = async (card: ChatCard) => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // 🔹 LOAD LOCAL
+            const existing = await AsyncStorage.getItem("favorites");
+            let favs = existing ? JSON.parse(existing) : [];
+
+            // 🔹 CHECK DUPLICATE
+            const already = favs.find((f: any) => f.id === card.id);
+            if (already) {
+                Alert.alert("Already added!");
+                return;
+            }
+
+            // 🔹 ADD
+            favs.push(card);
+
+            // 🔹 SAVE LOCAL
+            await AsyncStorage.setItem("favorites", JSON.stringify(favs));
+
+            // 🔥 SAVE TO FIRESTORE (IMPORTANT)
+            await setDoc(
+                doc(db, "users", user.uid, "favorites", card.id),
+                card
+            );
+
+            Alert.alert("⭐ Added to favorites!");
+
+        } catch (err) {
+            console.log("Fav error:", err);
         }
     };
 
@@ -233,8 +284,29 @@ export default function ChatScreen({ navigation, route }: any) {
                                         <Text style={styles.cardSubtitle}>{card.subtitle}</Text>
                                     )}
 
-                                    <View style={styles.cardButton}>
-                                        <Text style={styles.cardButtonText}>{card.actionLabel}</Text>
+                                    <View style={{ gap: 8 }}>
+
+                                        {/* MAIN ACTION */}
+                                        <Pressable
+                                            style={styles.cardButton}
+                                            onPress={() => handleCardPress(card)}
+                                        >
+                                            <Text style={styles.cardButtonText}>{card.actionLabel}</Text>
+                                        </Pressable>
+
+                                        {/* FAVORITE BUTTON */}
+                                        <Pressable
+                                            style={{
+                                                backgroundColor: "#ffd86b",
+                                                borderRadius: 12,
+                                                paddingVertical: 8,
+                                                alignItems: "center"
+                                            }}
+                                            onPress={() => addToFavorites(card)}
+                                        >
+                                            <Text style={{ fontWeight: "800" }}>⭐ Favorite</Text>
+                                        </Pressable>
+
                                     </View>
 
                                 </LinearGradient>
@@ -271,6 +343,12 @@ export default function ChatScreen({ navigation, route }: any) {
 
                             <Pressable style={styles.menuItem} onPress={() => navigation.replace("ChildSelect")}>
                                 <Text style={styles.menuItemText}>Switch User</Text>
+                            </Pressable>
+                            <Pressable
+                                style={styles.menuItem}
+                                onPress={() => navigation.navigate("Favorites")}
+                            >
+                                <Text style={styles.menuItemText}>My Favorites</Text>
                             </Pressable>
 
                             <Pressable style={styles.menuItem}>

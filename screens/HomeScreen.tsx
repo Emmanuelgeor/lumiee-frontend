@@ -194,6 +194,13 @@ export default function HomeScreen({ navigation, route }: any) {
                             <Text style={styles.menuTitle}>{childName}</Text>
                             <Text style={styles.menuSub}>Learner</Text>
 
+                            <Pressable
+                                style={styles.menuItem}
+                                onPress={() => navigation.navigate("Favorites")}
+                            >
+                                <Text style={styles.menuItemText}>My Favorites</Text>
+                            </Pressable>
+
                             <Pressable style={styles.menuItem}>
                                 <Text style={styles.menuItemText}>Parent Area</Text>
                             </Pressable>

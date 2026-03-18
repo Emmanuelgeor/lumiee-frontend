@@ -8,6 +8,9 @@ import HomeScreen from "../screens/HomeScreen";
 import ChildSelectScreen from "../screens/ChildSelectScreen";
 import ContinueScreen from "../screens/ContinueScreen";
 import ChatScreen from "../screens/ChatScreen";
+import FavoritesScreen from "../screens/FavoritesScreen";
+import VideoPlayer from "../screens/VideoPlayer";
+import BookViewer from "../screens/BookViewer";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +27,9 @@ export default function AppNavigator({ initialRoute }: any) {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="ContinueLearning" component={ContinueScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            <Stack.Screen name="VideoPlayer" component={VideoPlayer} />
+            <Stack.Screen name="BookViewer" component={BookViewer} />
         </Stack.Navigator>
     );
 }
